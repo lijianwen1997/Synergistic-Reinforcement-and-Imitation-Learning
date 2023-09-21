@@ -1,0 +1,9 @@
+*.pth filter=lfs diff=lfs merge=lfs -text
+*.so filter=lfs diff=lfs merge=lfs -text
+*.assets filter=lfs diff=lfs merge=lfs -text
+*.resS filter=lfs diff=lfs merge=lfs -text
+/encoder/models/vae-sim-rgb-all.pth filter=lfs diff=lfs merge=lfs -text
+/riverine_simulation/unity_riverine_envs/riverine_testing_env/riverine_testing_env_Data/globalgamemanagers.assets filter=lfs diff=lfs merge=lfs -text
+/riverine_simulation/unity_riverine_envs/riverine_testing_env/riverine_testing_env_Data/sharedassets0.assets.resS filter=lfs diff=lfs merge=lfs -text
+/riverine_simulation/unity_riverine_envs/riverine_training_env/riverine_training_env_Data/globalgamemanagers.assets filter=lfs diff=lfs merge=lfs -text
+/riverine_simulation/unity_riverine_envs/riverine_training_env/riverine_training_env_Data/sharedassets0.assets.resS filter=lfs diff=lfs merge=lfs -text
