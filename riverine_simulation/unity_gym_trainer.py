@@ -7,10 +7,10 @@ from stable_baselines3.common.callbacks import BaseCallback
 # from stable_baselines3 import PPO
 
 import sys
-sys.path.append("/home/edison/Research/Mutual_Imitaion_Reinforcement_Learning")
+sys.path.append("../drl_deg")
 from ppo import PPO
 import bc
-from train_mirl import SaveOnBestTrainingRewardCallback
+from callback import UpdateExpertCallback
 from evaluation import evaluate_policy
 
 from env_utils import make_unity_env
@@ -57,17 +57,9 @@ new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
 
 
 def train(seed: int = env_seed, use_callback: bool = True):
-    # env_path = '/home/edison/Terrain/terrain_rgb.x86_64'
-    # env_path = '/home/edison/Terrain/terrain_rgb_action1d.x86_64'
-    # env_path = '/home/edison/Terrain/terrain_rgb_action4d.x86_64'
-    # env_path = '/home/edison/Terrain/circular_river_easy/circular_river_easy.x86_64'
-    # env_path = '/home/edison/Terrain/circular_river_easy_500/circular_river_easy_500.x86_64'
-    # env_path = '/home/edison/Terrain/circular_river_medium_reward/circular_river_medium_reward.x86_64'
-    # env_path = '/home/edison/Terrain/circular_river_medium/circular_river_medium.x86_64'
     env_path = '/home/edison/Downloads/circular_river_medium_9_14/circular_river_medium/circular_river_medium.x86_64'
-    # env_path = None
 
-    callback = SaveOnBestTrainingRewardCallback(check_freq=check_freq, log_dir=tmp_path,
+    callback = UpdateExpertCallback(check_freq=check_freq, log_dir=tmp_path,
                                                 verbose=1) if use_callback else None
 
     for seed in [1]:
@@ -107,14 +99,6 @@ def predict():
     from mlagents_envs.environment import UnityEnvironment
     from mlagents_envs.envs.unity_gym_env import UnityToGymWrapper
 
-    # plt.ion()
-    # fig = plt.figure()
-    # ax_rgb = fig.add_subplot(111)
-
-    # env_path = '/home/edison/Terrain/terrain_rgb.x86_64'
-    # env_path = '/home/edison/Terrain/terrain_rgb_action4d.x86_64'
-    # env_path = '/home/edison/Terrain/circular_river_easy/circular_river_easy.x86_64'
-    # env_path = '/home/edison/Terrain/circular_river_medium/circular_river_medium.x86_64'
     env_path = None
 
     unity_env = UnityEnvironment(file_name=env_path, no_graphics=False, seed=env_seed,
@@ -125,47 +109,15 @@ def predict():
     # env = make_unity_env(env_path, 1, True, seed=env_seed, start_index=1, vae_model_name=vae_model_name)
     print(f'Gym environment {env_path} is created!')
 
-    # channel_config = InputChannelConfig.RGB_ONLY
-    # latent_dim = 1024
-    # hidden_dims = [32, 64, 128, 256, 512, 1024]
-    # vae_model_path = '/home/edison/Research/Mutual_Imitaion_Reinforcement_Learning/encoder/models/vae-sim-rgb.pth'
-    # vae_model = VAE(in_channels=channel_config.value, latent_dim=latent_dim, hidden_dims=hidden_dims)
-    # vae_model.eval()
-    # vae_model.load_state_dict(torch.load(vae_model_path, map_location=torch.device('cpu')))
-    # print(f'VAE model is loaded!')
-
-    # model = PPO.load("terrain_rgb_ppo.zip")
-    # model = PPO.load("terrain_rgb_ppo_action4d_bc_static.zip")
-    # model = PPO.load("terrain_rgb_ppo_action4d_bc_dynamic_good.zip")
-    # model = PPO.load(model_save_name + '.zip')
     model = PPO.load('circular_medium_ppo_seed_1_300k.zip')
     print(f'PPO model {model_save_name} is loaded!')
 
     obs = env.reset()
 
-
-    # n_eval_episodes = 50
-    #
-    # rewards, episode_lens, traj_good, traj_bad = evaluate_policy(
-    #     model.policy,  # type: ignore[arg-type]
-    #     env,
-    #     n_eval_episodes=n_eval_episodes,
-    #     render=False,
-    #     return_episode_rewards=True
-    # )
-    # print(rewards)
-    # print(np.sum(rewards) / n_eval_episodes)
-
     step_reward = []
     episode_reward = []
     ep_id = 0
     while ep_id < 50:
-        # recon_img = vae_model.decode(torch.Tensor(obs))[0].permute((1, 2, 0)).detach().numpy() * 255
-        # ax_rgb.imshow(recon_img.astype(np.uint8))
-        #
-        # fig.canvas.draw()
-        # fig.canvas.flush_events()
-
         action, _states = model.predict(obs)
         obs, rewards, done, info = env.step(action)
         step_reward.append(rewards)
@@ -177,9 +129,6 @@ def predict():
             obs = env.reset()
             step_reward = []
             ep_id += 1
-            # break
-        # time.sleep(0.5)
-        # env.render()
     print(f'Episode reward mean: {np.mean(episode_reward)}, max: {np.max(episode_reward)}, min: {np.min(episode_reward)}')
 
 
@@ -196,7 +145,6 @@ def predict_bc():
     ax_rgb = fig.add_subplot(111)
 
     env_path = '/home/edison/Terrain/terrain_rgb_action4d.x86_64'
-    # env_path = None
     env = make_unity_env(env_path, 1, True)
     print(f'Gym environment created!')
 
@@ -228,8 +176,6 @@ def predict_bc():
 
         episode_reward.append(reward)
         print(f'{action=}, {reward=}, episode_reward {np.sum(episode_reward)}')
-        # print(f'{info=}')
-        # time.sleep(2)
         if done:
             print(f'Done')
             break
