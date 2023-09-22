@@ -20,20 +20,7 @@ from encoder.dataset import InputChannelConfig
 from drl_deg.train_utils import *
 
 
-#### Unity env absolute path ####
-# env_path = None  # require Unity Editor to be running
-# env_path = '/home/edison/Terrain/terrain_rgb.x86_64'
-# env_path = '/home/edison/Terrain/circular_river_medium/circular_river_medium.x86_64'
-env_path = '/home/edison/Terrain/riverine_training_env/riverine_training_env.x86_64'
-# env_path = '/home/edison/Terrain/circular_river_medium_configurable/circular_river_medium_configurable.x86_64'
-# env_path = '/home/edison/Terrain/circular_river_easy/circular_river_easy.x86_64'
-# env_path = '/home/edison/Terrain/circular_river_hard/circular_river_hard.x86_64'
-# env_path = '/home/edison/River/mlagent-ram-seg.x86_64'
-# env_path = '/home/edison/River/mlagent-ram-test2.x86_64'
-# env_path = '/home/edison/River/mlagent-ram-4D.x86_64'
-# env_path = '/home/edison/Research/ml-agents/Visual3DBall.x86_64'
-# env_path = '/home/edison/TestAgent/testball.x86_64'
-# env_path = '/home/edison/RollerBall/SlidingCube.x86_64'
+env_path = 'unity_riverine_envs/riverine_training_env/riverine_training_env.x86_64'
 
 width, height = 128, 128  # change as you wish
 
