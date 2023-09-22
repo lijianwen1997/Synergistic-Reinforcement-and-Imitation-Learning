@@ -11,12 +11,8 @@ from mlagents_envs.base_env import ActionTuple, BaseEnv
 from mlagents_envs.base_env import DecisionSteps, TerminalSteps
 from mlagents_envs import logging_util
 
-import sys
-sys.path.append("/home/edison/Research/Mutual_Imitaion_Reinforcement_Learning")
-sys.path.append("../encoder")
-sys.path.append("/home/edison/Research/Mutual_Imitaion_Reinforcement_Learning/utils")
-from vae import VAE
-from dataset import InputChannelConfig
+from encoder.vae import VAE
+from encoder.dataset import InputChannelConfig
 
 
 class UnityGymException(error.Error):

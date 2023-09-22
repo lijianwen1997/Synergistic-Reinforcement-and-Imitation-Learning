@@ -7,35 +7,24 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 
 from mlagents_envs.environment import UnityEnvironment
-from mlagents_envs.envs.unity_gym_env import UnityToGymWrapper
+from unity_gym_env import UnityToGymWrapper
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel, EngineConfig
-from mlagents_envs.side_channel.agent_configuration_channel import AgentConfigurationChannel, AgentConfig
-from mlagents_envs.side_channel.segmentation_receiver_channel import SegmentationReceiverChannel
-from mlagents_envs.side_channel.rgb_receiver_channel import RGBReceiverChannel
-from mlagents_envs.key2action import Key2Action
+from agent_configuration_channel import AgentConfigurationChannel, AgentConfig
+from key2action import Key2Action
 from env_utils import make_unity_env
 
-sys.path.append("/home/edison/Research/Mutual_Imitaion_Reinforcement_Learning/encoder")
-sys.path.append("/home/edison/Research/Mutual_Imitaion_Reinforcement_Learning/utils")
-from vae import VAE
-from dataset import InputChannelConfig
+from encoder.vae import VAE
+from encoder.dataset import InputChannelConfig
 
-import gym
-
-import numpy as np
-# from ppo import PPO
-from stable_baselines3 import PPO, TD3
-from imitation.util import util
-
-import bc
-from train_utils import *
+from drl_deg.train_utils import *
 
 
 #### Unity env absolute path ####
-env_path = None  # require Unity Editor to be running
+# env_path = None  # require Unity Editor to be running
 # env_path = '/home/edison/Terrain/terrain_rgb.x86_64'
 # env_path = '/home/edison/Terrain/circular_river_medium/circular_river_medium.x86_64'
+env_path = '/home/edison/Terrain/riverine_training_env/riverine_training_env.x86_64'
 # env_path = '/home/edison/Terrain/circular_river_medium_configurable/circular_river_medium_configurable.x86_64'
 # env_path = '/home/edison/Terrain/circular_river_easy/circular_river_easy.x86_64'
 # env_path = '/home/edison/Terrain/circular_river_hard/circular_river_hard.x86_64'
@@ -46,7 +35,7 @@ env_path = None  # require Unity Editor to be running
 # env_path = '/home/edison/TestAgent/testball.x86_64'
 # env_path = '/home/edison/RollerBall/SlidingCube.x86_64'
 
-width, height = 640, 480
+width, height = 128, 128  # change as you wish
 
 channel_env = EnvironmentParametersChannel()
 channel_env.set_float_parameter("simulation_mode", 1.0)
@@ -54,32 +43,22 @@ channel_env.set_float_parameter("simulation_mode", 1.0)
 channel_eng = EngineConfigurationChannel()
 channel_eng.set_configuration_parameters(width=width, height=height, quality_level=1, time_scale=1,
                                          target_frame_rate=None, capture_frame_rate=None)
-# channel_eng.set_configuration(EngineConfig.default_config())
 
 channel_agent = AgentConfigurationChannel()
-# channel_agent.set_configuration(AgentConfig.default_config())
-channel_agent.set_configuration_parameters(max_idle_steps=500)
-
-channel_seg = SegmentationReceiverChannel()
-channel_rgb = RGBReceiverChannel()
+channel_agent.set_configuration_parameters(max_idle_steps=500)  # increase idle threshold to for human input
 
 env_seed = 1
-# vae_model_name = 'vae-sim-rgb-medium.pth'
-# vae_model_name = 'vae-sim-rgb-easy.pth'
+
 vae_model_name = 'vae-sim-rgb-all.pth'
 
 unity_env = UnityEnvironment(file_name=env_path, no_graphics=False, seed=env_seed,
-                             # side_channels=[channel_env, channel_eng, channel_seg, channel_rgb],
                              side_channels=[channel_env, channel_eng, channel_agent],
-                             # side_channels=[channel_float],
                              additional_args=['-logFile', 'unity.log'])
-env = UnityToGymWrapper(unity_env, uint8_visual=True, flatten_branched=False, encode_obs=False,
-                        wait_frames_num=0, vae_model_name=vae_model_name)
-# env = make_unity_env(env_path, 1, True, env_seed, encode_obs=False, vae_model_name=vae_model_name)
+env = UnityToGymWrapper(unity_env, uint8_visual=True, flatten_branched=False, encode_obs=False, wait_frames_num=0)
+
 obs = env.reset()
-# print(f'{env.observation_space=}')
-print(f'{env.action_space=}')
 print(f'{obs.shape=}')
+print(f'{env.action_space=}')
 
 vae_model = env.vae_model
 
@@ -95,24 +74,13 @@ is_mask_sync = False
 cur_sync_frame_num = 0
 min_sync_frame_num = 5
 
-save_fig = False  # whether save figures and csv
-record_bad = False  # set to False to manually record good demos
-get_bc_act = False  # whether output the action prediction of BC, both multi-discrete and one-hot multi-discrete
+save_fig = False  # whether to save figures and csv
+record_bad = False  # set to False to manually record good demos, otherwise random actions
 
-# load NN models for VAE encoding and IL
-mode = 'sim'  # or 'real' or 'both'
-channel_config = InputChannelConfig.RGB_ONLY  # or 'MASK_ONLY' or 'RGB_MASK'
-
-if get_bc_act:
-    il_model_path = '/home/edison/Research/Mutual_Imitaion_Reinforcement_Learning/weight/BC_RGB_500'
-    print(f'{il_model_path=}')
-    bc_policy = bc.reconstruct_policy(il_model_path)
-    print(f'IL model is loaded!')
-
-# trajectory_path = 'trajectories/easy'
-trajectory_path = 'trajectories/medium'
-trajectory_good_path = trajectory_path + '/good_new'
+trajectory_path = 'trajectories/training'
+trajectory_good_path = trajectory_path + '/good'
 trajectory_bad_path = trajectory_path + '/bad'
+
 demo_id = 0
 print(f'Current demo: {demo_id}')
 demo_name = f'demo{demo_id}'
@@ -154,18 +122,6 @@ def update_demo_path():
         os.makedirs(mask_dir, exist_ok=True)
 
 
-# define one-hot multi-discrete actions as human expert demonstrates
-actions = np.ones([9, 4])
-actions[1, 3] = 0  # up
-actions[2, 3] = 2  # down
-actions[3, 2] = 0  # l r
-actions[4, 2] = 2  # r r
-actions[5, 1] = 0  # f
-actions[6, 1] = 2  # b
-actions[7, 0] = 0  # l
-actions[8, 0] = 2  # r
-
-
 if __name__ == '__main__':
     i = 1
     episode_steps = 0
@@ -178,26 +134,8 @@ if __name__ == '__main__':
             action = k2a.get_random_action()
             is_mask_sync = False
 
-        # predict action using nn model
-        if vae_model is not None and get_bc_act:
-            if channel_config == InputChannelConfig.MASK_ONLY:
-                obs = torch.Tensor(mask_show).permute((2, 0, 1))[0].unsqueeze(0).unsqueeze(0)
-            elif channel_config == InputChannelConfig.RGB_ONLY:
-                obs = torch.Tensor(obs).permute((2, 0, 1)).unsqueeze(0) / 255.0
-            # print(f'{obs.shape=}')
-            encoding = vae_model.encode(obs)[0][0].to("cuda:0")
-            acts = util.safe_to_tensor(actions).to("cuda:0")
-            _, log_prob, entropy = bc_policy.evaluate_actions(encoding.unsqueeze(0), acts)
-            print(f'{log_prob=}')
-            action_il = log_prob.cpu().detach().numpy().argmax()
-            action_int, _ = bc_policy.predict(encoding.cpu().detach().numpy())
-
-            is_mask_sync = False
-            print(f'IL: {action_il=}, KEY: {action=}, PRED: {action_int=}')
-
         # step once, if done, get ready to save stuff to the new folders/file
         obs, reward, done, info = env.step(action)
-
 
         # save image-mask-action to csv only when action is not all 0
         if save_fig and obs_path is not None and mask_path is not None and any(a != 1 for a in action):

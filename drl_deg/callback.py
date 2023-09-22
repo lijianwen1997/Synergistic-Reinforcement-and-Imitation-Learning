@@ -3,21 +3,19 @@
 Refer to the jupyter notebooks for more detailed examples of how to use the algorithms.
 """
 
-import gym
-import numpy as np
-from ppo import PPO
+from drl_deg.ppo import PPO
 #from stable_baselines3 import PPO, TD3
 
-from evaluation import evaluate_policy
+from drl_deg.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.ppo import MlpPolicy
 from stable_baselines3.common.logger import configure
 
-from train_utils import *
+from drl_deg.train_utils import *
 
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.results_plotter import load_results, ts2xy
-import bc
+import drl_deg.bc as bc
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from imitation.data.types import Transitions
 
