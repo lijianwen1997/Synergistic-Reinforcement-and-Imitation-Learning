@@ -13,7 +13,7 @@ from mlagents_envs import logging_util
 
 import sys
 sys.path.append("/home/edison/Research/Mutual_Imitaion_Reinforcement_Learning")
-sys.path.append("/home/edison/Research/Mutual_Imitaion_Reinforcement_Learning/encoder")
+sys.path.append("../encoder")
 sys.path.append("/home/edison/Research/Mutual_Imitaion_Reinforcement_Learning/utils")
 from vae import VAE
 from dataset import InputChannelConfig
@@ -181,14 +181,16 @@ class UnityToGymWrapper(gym.Env):
 
         mode = 'sim'  # or 'real' or 'both'
         channel_config = InputChannelConfig.RGB_ONLY  # or 'MASK_ONLY' or 'RGB_MASK'
-        vae_model_dir = '/home/edison/Research/Mutual_Imitaion_Reinforcement_Learning/encoder/models/'
+        vae_model_dir = '../encoder/models/'
         vae_model_path = vae_model_dir + vae_model_name
         assert os.path.exists(vae_model_path), f'vae model {vae_model_path} not exists!'
         latent_dim = 1024
         hidden_dims = [32, 64, 128, 256, 512, 1024]
         self.vae_model = VAE(in_channels=channel_config.value, latent_dim=latent_dim, hidden_dims=hidden_dims)
         self.vae_model.eval()
+        print(vae_model_path)
         self.vae_model.load_state_dict(torch.load(vae_model_path, map_location=torch.device('cpu')))
+
         print(f'VAE model {vae_model_path} is loaded!')
 
     def reset(self) -> Union[List[np.ndarray], np.ndarray]:

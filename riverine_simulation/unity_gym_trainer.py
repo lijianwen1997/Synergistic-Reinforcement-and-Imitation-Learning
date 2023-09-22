@@ -57,7 +57,9 @@ new_logger = configure(tmp_path, ["stdout", "csv", "tensorboard"])
 
 
 def train(seed: int = env_seed, use_callback: bool = True):
-    env_path = '/home/edison/Downloads/circular_river_medium_9_14/circular_river_medium/circular_river_medium.x86_64'
+    #env_path = '/home/edison/Downloads/circular_river_medium_9_14/circular_river_medium/circular_river_medium.x86_64'
+    #env_path = '/home/jianwen/Workspace/circular_river_medium/circular_river_medium.x86_64'
+    env_path = 'unity_riverine_envs/riverine_training_env/riverine_training_env.x86_64'
 
     callback = UpdateExpertCallback(check_freq=check_freq, log_dir=tmp_path,
                                                 verbose=1) if use_callback else None

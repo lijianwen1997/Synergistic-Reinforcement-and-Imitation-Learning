@@ -12,6 +12,7 @@ from stable_baselines3.common.policies import ActorCriticCnnPolicy, ActorCriticP
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
 from stable_baselines3.common.utils import explained_variance, get_schedule_fn
 import bc
+import os
 SelfPPO = TypeVar("SelfPPO", bound="PPO")
 
 
@@ -169,7 +170,7 @@ class PPO(OnPolicyAlgorithm):
         self.use_action_loss = True
         self.env_name = "unity_river_"
         self.action_eff = 0.5
-        mirl_dir = "/home/jianwen/Workspace/Mutual_Imitaion_Reinforcement_Learning"
+        mirl_dir = os.path.dirname(__file__)#"/home/jianwen/Workspace/Mutual_Imitaion_Reinforcement_Learning"
         il_model_path = mirl_dir+'/weight/BC_expert'
         self.bc = bc.reconstruct_policy(il_model_path)
         self.n_calls = 0
