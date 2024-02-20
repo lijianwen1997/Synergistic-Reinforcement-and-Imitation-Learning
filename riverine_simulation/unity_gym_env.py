@@ -171,7 +171,8 @@ class UnityToGymWrapper(gym.Env):
         if encode_obs and vae_model_name == '':
             print('VAE model name not specified when needing image encoder!')
             exit(0)
-        if not encode_obs or vae_model_name == '':  # no need to load vae model
+        if not encode_obs or vae_model_name == '':
+            print(f'No need to load vae model!')
             self.vae_model = None
             return
 

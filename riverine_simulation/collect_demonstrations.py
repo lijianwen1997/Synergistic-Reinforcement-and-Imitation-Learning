@@ -1,8 +1,6 @@
 import csv
 import os
-import sys
-import io
-import torch
+import numpy as np
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 
@@ -21,8 +19,10 @@ from drl_deg.train_utils import *
 
 
 env_path = 'unity_riverine_envs/riverine_training_env/riverine_training_env.x86_64'
+# env_path = 'unity_riverine_envs/riverine_testing_env_new/riverine_testing_env_new.x86_64'
+# env_path = None  # de-annotate if want to interact with Unity Editor directly
 
-width, height = 128, 128  # change as you wish
+width, height = 1024, 1024  # change as you wish
 
 channel_env = EnvironmentParametersChannel()
 channel_env.set_float_parameter("simulation_mode", 1.0)
@@ -32,11 +32,11 @@ channel_eng.set_configuration_parameters(width=width, height=height, quality_lev
                                          target_frame_rate=None, capture_frame_rate=None)
 
 channel_agent = AgentConfigurationChannel()
-channel_agent.set_configuration_parameters(max_idle_steps=500)  # increase idle threshold to for human input
+channel_agent.set_configuration_parameters(max_idle_steps=5000)  # increase idle threshold to allow human input interval
 
-env_seed = 1
+env_seed = 1  # Unity environment seed
 
-vae_model_name = 'vae-sim-rgb-all.pth'
+vae_model_name = 'vae-sim-rgb-all.pth'  # use RGB image for VAE input
 
 unity_env = UnityEnvironment(file_name=env_path, no_graphics=False, seed=env_seed,
                              side_channels=[channel_env, channel_eng, channel_agent],
@@ -110,9 +110,9 @@ def update_demo_path():
 
 
 if __name__ == '__main__':
-    i = 1
-    episode_steps = 0
-    max_episode_steps = 100
+    i = 1  # total steps during demo collection
+    episode_steps = 0  # steps in current episode
+    max_episode_steps = 500  # step limit of episode
     while i < 1000000:
         # get next action either manually or randomly
         action = k2a.get_multi_discrete_action()  # no action if no keyboard input
@@ -124,21 +124,23 @@ if __name__ == '__main__':
         # step once, if done, get ready to save stuff to the new folders/file
         obs, reward, done, info = env.step(action)
 
+        if not np.all(np.array(action) == 1):
+            i += 1
+            episode_steps += 1
+            print(f'EpStep: {episode_steps}, action: {action}, reward: {reward}, done: {done}')
+
         # save image-mask-action to csv only when action is not all 0
         if save_fig and obs_path is not None and mask_path is not None and any(a != 1 for a in action):
             with open(csv_path, 'a+', newline='') as f:
                 writer = csv.writer(f, delimiter=',')
                 writer.writerow([obs_path, action, reward, 1 if done else 0])
-            i += 1
-            episode_steps += 1
             print(f'Saved {i}th img-action-reward-done tuple to {csv_path}.')
 
         if done or episode_steps == max_episode_steps:
             if done:
-                print('Done!')
+                print(f'Done, episode len: {episode_steps}!')
             else:
                 print(f'Collected {max_episode_steps} steps!')
-            # break
             episode_steps = 0
             env.reset()
             demo_id += 1
