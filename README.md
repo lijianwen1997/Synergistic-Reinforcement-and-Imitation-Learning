@@ -14,7 +14,7 @@ Mechanical Engineering, Purdue University
 
     `git lfs pull`
 
-- The environments can also be downloaded solely from Google Drive [link](https://drive.google.com/file/d/1X1Ja7UBOXSMAox_aiynsmNEfMy8dkrIr/view?usp=sharing), and the VAE model from this [link](https://drive.google.com/file/d/1SVU3p5wbGQnQs7U3qp7Gz0eCdo7YrYGh/view?usp=sharing), then replace folder 'riverine_simulation/unity_riverine_envs' and file 'encoder/models/vae-sim-rgb-all.pth' respectively.
+- The environments can also be downloaded solely from Google Drive [link](https://drive.google.com/file/d/1WJxrdJ-zutyivMwX9l2zxkW3kB5BTTz5/view?usp=sharing), and the VAE model from this [link](https://drive.google.com/file/d/1SVU3p5wbGQnQs7U3qp7Gz0eCdo7YrYGh/view?usp=sharing), then replace folder 'riverine_simulation/unity_riverine_envs' and file 'encoder/models/vae-sim-rgb-all.pth' respectively.
 
 
 
