@@ -65,6 +65,7 @@ py-cpuinfo==9.0.0
 pyarrow==13.0.0
 pyasn1==0.5.0
 pyasn1-modules==0.3.0
+pygame==2.5.2
 pyglet==1.5.27
 Pygments==2.16.1
 pynput==1.7.6
