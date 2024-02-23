@@ -89,6 +89,7 @@ class BCTrainingMetrics:
     l2_loss: th.Tensor
     loss: th.Tensor
 
+
 @dataclasses.dataclass(frozen=True)
 class BCTrainingMetrics_BadDemo:
     """Container for the different components of behavior cloning loss."""
@@ -100,12 +101,15 @@ class BCTrainingMetrics_BadDemo:
     l2_norm: th.Tensor
     l2_loss: th.Tensor
     loss: th.Tensor
+
+
 @dataclasses.dataclass(frozen=False)
 class BehaviorCloningLossCalculator:
     """Functor to compute the loss used in Behavior Cloning."""
 
     ent_weight: float
     l2_weight: float
+
     def __call__(
         self,
         policy: policies.ActorCriticPolicy,
@@ -368,7 +372,6 @@ class BC(algo_base.DemonstrationAlgorithm):
         )
 
         self.loss_calculator = BehaviorCloningLossCalculator(ent_weight, l2_weight)
-        self.loss_calculator_bad = BadBehaviorLossCalculator(ent_weight, l2_weight)
 
     @property
     def policy(self) -> policies.ActorCriticPolicy:

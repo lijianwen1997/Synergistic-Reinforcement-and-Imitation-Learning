@@ -7,10 +7,8 @@ from imitation.data import rollout
 from imitation.data.wrappers import RolloutInfoWrapper
 from imitation.data.types import Transitions
 
-from imitation.data import serialize
 import csv
 import re
-
 
 
 def sample_expert_transitions(expert,env,rng,episodes = 40):
@@ -23,6 +21,7 @@ def sample_expert_transitions(expert,env,rng,episodes = 40):
     )
     return rollout.flatten_trajectories(rollouts)
 
+
 def save_to_file(data, file_path):
     try:
         with open(file_path, "ab") as handle:
@@ -31,11 +30,15 @@ def save_to_file(data, file_path):
         with open(file_path, "wb") as handle:
             np.savetxt(handle, data, fmt="%s")
 
-def save_to_csv(dataset,env_name,transitions,failure_steps=20):
-    csv_columns = ['obs', 'acts','infos','next_obs','dones']
-    csv_file = "./" + env_name + "trajectory/" + dataset + "/transitions_merge.csv"
-    #breakpoint()
+
+def save_to_csv(dataset,env_name,transitions,failure_steps=20,test_type="mix",seed=0):
+    directory = "./trajectory/" + env_name + "/" + dataset
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    csv_columns = ['obs', 'acts', 'infos', 'next_obs', 'dones']
+    csv_file = directory + "/transitions_"+test_type + str(seed)+".csv"
     np.set_printoptions(threshold=np.inf, linewidth=np.nan)
+
     with open(csv_file, 'w') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
         writer.writeheader()
@@ -46,14 +49,13 @@ def save_to_csv(dataset,env_name,transitions,failure_steps=20):
             for i in range(len(transitions)-failure_steps):
                 if transitions.dones[i+failure_steps-1] == True:
                     for j in range (failure_steps):
-                        #print(transitions[i+j])
                         writer.writerow(transitions[i+j])
 
 
 def append_to_csv(dataset,env_name,data,seed=0,test_type="mix"):
-    csv_columns = ['obs', 'acts','infos','next_obs','dones']
-    csv_file ="./" + env_name+ "_trajectory/" + dataset + "/transitions_"+test_type +str(seed)+".csv"  #seed_"+str(seed)+".csv"
-    # csv_file = '/home/edison/Research/ml-agents/ml-agents-envs/mlagents_envs/envs/' + env_name + "/trajectory/" + dataset + "/transitions.csv"
+    directory = "./trajectory/" + env_name + "/" + dataset
+    csv_columns = ['obs', 'acts', 'infos', 'next_obs','dones']
+    csv_file = directory + "/transitions_"+test_type + str(seed)+".csv"
     if not os.path.exists(csv_file):
         os.makedirs(os.path.dirname(csv_file), exist_ok=True)
         fp = open(csv_file, 'x')
@@ -66,15 +68,7 @@ def append_to_csv(dataset,env_name,data,seed=0,test_type="mix"):
         #    writer.writerow(data)
         for trans in data:
             writer.writerow(trans)
-        # if dataset == "success":
-        #     for i in range(50):
-        #         writer.writerow(data[i])
-        #
-        # else:
-        #     if len(data) - failure_steps > 0:
-        #         #breakpoint()
-        #         for i in range( -failure_steps,0):
-        #             writer.writerow(data[i])
+
 
 def read_csv(dataset,env_name,seed=1,test_type="mix"):
     states = []
@@ -82,11 +76,9 @@ def read_csv(dataset,env_name,seed=1,test_type="mix"):
     infos = []
     next_states = []
     dones = []
-
-
-    csv_file = "./" + env_name+"trajectory/" + dataset + "/transitions_"+test_type +str(seed)+".csv"
-
-    with open(csv_file,'r') as csvfile:
+    directory = "./trajectory/" + env_name + "/" + dataset
+    csv_file = directory + "/transitions_"+test_type + str(seed)+".csv"
+    with open(csv_file, 'r') as csvfile:
         reader = csv.reader(csvfile)
         next(reader, None)  # skip the headers
         for line in reader:
@@ -118,7 +110,6 @@ def read_csv(dataset,env_name,seed=1,test_type="mix"):
         new_transistions = Transitions(np.array(states), np.array(actions), np.array(infos), np.array(next_states),np.array(dones))
 
     return new_transistions
-
 
 
 def read_csv_unity( ):

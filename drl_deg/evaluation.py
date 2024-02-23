@@ -8,7 +8,7 @@ from stable_baselines3.common import type_aliases
 from stable_baselines3.common.vec_env import DummyVecEnv, VecEnv, VecMonitor, is_vecenv_wrapped
 from imitation.data.types import Transitions
 
-import time
+
 def evaluate_policy_old(
     model: "type_aliases.PolicyPredictor",
     env: Union[gym.Env, VecEnv],

@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 from torchvision.io import read_image
 import torchvision.transforms as T
 
-from .build_dataset import abs_path, get_dataset_list
+from encoder.build_dataset import abs_path, get_dataset_list
 
 
 class InputChannelConfig(Enum):
