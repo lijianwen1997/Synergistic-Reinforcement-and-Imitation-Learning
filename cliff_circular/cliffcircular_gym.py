@@ -4,11 +4,11 @@ from os import path
 from typing import Optional, Union, List, Dict, Tuple
 import numpy as np
 
-import gymnasium as gym
-from gymnasium import Env, spaces
-from gymnasium.envs.toy_text.utils import categorical_sample
-from gymnasium.error import DependencyNotInstalled
-from gymnasium.envs.registration import register
+import gym
+from gym import Env, spaces
+from gym.error import DependencyNotInstalled
+from gym.envs.registration import register
+from gym.utils import seeding
 
 try:
     import pygame
@@ -25,8 +25,8 @@ LEFT = 4
 
 
 register(
-     id="CliffCircular-v0",
-     entry_point="cliff_circular:CliffCircularEnv",
+     id="CliffCircular-gym-v0",
+     entry_point="cliff_circular:CliffCircularGymEnv",
      max_episode_steps=128,
      kwargs={
          'render_mode': None,
@@ -36,11 +36,20 @@ register(
          'obs_include_loc': False,
          'punish_meaningless_action': False,
          'boost_finish_reward': False,
+         'seed': 0,
      }
 )
 
 
-class CliffCircularEnv(Env):
+def categorical_sample(prob_n, np_random: np.random.Generator):
+    """Sample from categorical distribution where each row specifies class probabilities."""
+    assert np_random is not None, f'numpy rng is None!'
+    prob_n = np.asarray(prob_n)
+    csprob_n = np.cumsum(prob_n)
+    return np.argmax(csprob_n > np_random.random())
+
+
+class CliffCircularGymEnv(Env):
     """
     Cliff circular involves navigating in a gridworld circularly while avoiding falling off a cliff.
 
@@ -59,7 +68,7 @@ class CliffCircularEnv(Env):
     At most 2 extra cliff can be added to the gridworld with fixed cliff locations. Whether the extra cliff locations
     need to be randomly re-generated on episode begin can also be toggled on env creation.
 
-    Adapted from [Gymnasium CliffWalking](https://gymnasium.farama.org/environments/toy_text/cliff_walking/)
+    Adapted from [Gym CliffWalking](https://www.gymlibrary.dev/environments/toy_text/cliff_walking/)
     environment, which is adapted from Example 6.6 (page 132) from Reinforcement Learning: An Introduction
     by Sutton and Barto [<a href="#cliffwalk_ref">1</a>].
 
@@ -86,7 +95,7 @@ class CliffCircularEnv(Env):
 
     If agent's current location is included in the observation, this scalar value representing the player's
     current position as current_row * nrows + current_col (where both the row and col start at 0) will be
-    the first element preceding the above dim-25 observation, resulting in 10-dim MultiDiscrete([144]+[2]*25)
+    the first element preceding the above dim-25 observation, resulting in 26-dim MultiDiscrete([144]+[2]*25)
     observation.
 
     ## Starting State
@@ -149,8 +158,11 @@ class CliffCircularEnv(Env):
                  obs_include_loc: bool = False,
                  punish_meaningless_action: bool = True,
                  boost_finish_reward: bool = False,
+                 seed: int = 0,
                  ):
         self.shape = (12, 12)  # the grid env size is fixed
+
+        self.np_random, _ = seeding.np_random(seed)  # default rng
 
         # Initial state is not fixed, this state is only for game display
         self.start_state_index = None
@@ -369,17 +381,12 @@ class CliffCircularEnv(Env):
             obs = self.observation_space.sample()  # observation at cliff is not the actual observation
             # reward is -100 if fell off cliff
 
-        # update truncation
-        truncated = False
         self.ep_steps += 1
-        # if self.ep_steps >= self.max_ep_len:
-        #     truncated = True
-        #     self.ep_steps = 0
 
         if self.render_mode is not None:
             self.render()
 
-        return obs, r, t, truncated, {"prob": p}
+        return obs, r, bool(t), {"prob": p}
 
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
         # reset extra cliff locations on episode begin
@@ -401,7 +408,6 @@ class CliffCircularEnv(Env):
                 raise ValueError(f'Externally assigned state {state} is invalid!')
         else:
             # print(f'Random reset!')
-            super().reset(seed=seed)
             self.s = categorical_sample(self.initial_state_distrib, self.np_random)
 
         # print(f'Reset agent to {self.s}')
@@ -430,7 +436,7 @@ class CliffCircularEnv(Env):
         if self.render_mode is not None:
             self.render()
 
-        return obs, {"prob": 1}
+        return obs
 
     def update_obs_state_buffer(self, obs: Tuple[int, ...]):
         """
@@ -479,7 +485,7 @@ class CliffCircularEnv(Env):
         cur_x, cur_y = np.unravel_index(self.s, self.shape)
         half_obs_side_len = self.obs_side_len // 2
         surround_positions = np.array(self._cliff[cur_x - half_obs_side_len: cur_x + half_obs_side_len + 1,
-                                      cur_y - half_obs_side_len: cur_y + half_obs_side_len + 1], dtype=int).flatten()
+                                      cur_y - half_obs_side_len: cur_y + half_obs_side_len + 1], dtype=np.int8).flatten()
         if self.obs_include_loc:
             return np.concatenate((np.array([self.s]), surround_positions))
         else:
@@ -707,7 +713,7 @@ class CliffCircularEnv(Env):
 
 if __name__ == "__main__":
     # Play with CliffCircular environment with keyboard
-    env = gym.make("CliffCircular-v0", render_mode='human')
+    env = gym.make("CliffCircular-gym-v0", render_mode='human')
     # env = gym.make("CliffCircular-v0", render_mode='ansi')
 
     # Manual reset agent state/location

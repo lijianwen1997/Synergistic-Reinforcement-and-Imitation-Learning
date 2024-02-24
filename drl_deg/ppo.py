@@ -168,7 +168,7 @@ class PPO(OnPolicyAlgorithm):
         self.use_action_loss = True
         self.env_name = "unity_river_"
         self.action_eff = 0.5
-        mirl_dir = os.path.dirname(__file__)#"/home/jianwen/Workspace/Mutual_Imitaion_Reinforcement_Learning"
+        mirl_dir = os.path.dirname(__file__)
         il_model_path = mirl_dir+'/weight/BC_expert'
         self.bc = bc.reconstruct_policy(il_model_path)
         self.n_calls = 0

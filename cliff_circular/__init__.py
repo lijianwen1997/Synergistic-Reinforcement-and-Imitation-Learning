@@ -1,1 +1,2 @@
 from cliff_circular.cliffcircular import CliffCircularEnv
+from cliff_circular.cliffcircular_gym import CliffCircularGymEnv
