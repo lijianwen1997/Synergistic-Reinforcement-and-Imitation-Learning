@@ -48,7 +48,7 @@ def save_to_csv(dataset, env_name, transitions, failure_steps=20, test_type="mix
         else:
             for i in range(len(transitions)-failure_steps):
                 if transitions.dones[i+failure_steps-1] == True:
-                    for j in range (failure_steps):
+                    for j in range(failure_steps):
                         writer.writerow(transitions[i+j])
 
 
@@ -148,13 +148,12 @@ def read_csv_unity():
     return new_transitions
 
 
-def read_csv_cliff_circular():
+def read_csv_cliff_circular(demo_path: str):
     states = []
     actions = []
     infos = []
     next_states = []
     dones = []
-    demo_path = '../cliff_circular/demo'
     assert os.path.exists(demo_path), f'{demo_path} does not exist!'
 
     demo_files = [f for f in os.listdir(demo_path) if f.endswith('.csv')]
@@ -182,9 +181,62 @@ def read_csv_cliff_circular():
         next_states.append(next_states[-1])
         step += ep_step
 
-    new_transitions = Transitions(np.array(states), np.array(actions), np.array(infos),
-                                  np.array(next_states), np.array(dones))
+    # filter out repeated data points
+    print(f'Read {len(states)} data points from demo.')
+    obs2act = {}
+    for obs, act in zip(states, actions):
+        o = tuple(obs)
+        if o not in obs2act:
+            obs2act[o] = act
+        else:
+            assert obs2act[o] == act
 
+    new_states = []
+    new_actions = []
+    for obs, act in obs2act.items():
+        new_states.append(list(obs))
+        new_actions.append(act)
+    new_len = len(new_states)
+    print(f'Narrow down to {new_len} data points.')
+
+    new_transitions = Transitions(np.array(new_states), np.array(new_actions), np.array([{}] * new_len),
+                                  np.array(new_states), np.array([False] * new_len))
+
+    return new_transitions
+
+
+def check_dataset():
+    dataset_path = 'trajectory/CliffCircular-gym-v0-1/success/transitions_merge0.csv'
+    assert os.path.exists(dataset_path), f'{dataset_path} does not exist!'
+
+    obs2act = {}
+    with open(dataset_path, 'r') as f:
+        reader = csv.reader(f, delimiter=',')
+        next(reader, None)  # skip the headers
+        for line in reader:
+            obs = line[0][1:-1]
+            obs = tuple(int(o) for o in obs.split(' '))
+            act = int(line[1])
+            # print(f'{obs=}  {act=}')
+            if obs not in obs2act:
+                obs2act[obs] = [act]
+            else:
+                obs2act[obs] += [act]
+
+    for obs, acts in obs2act.items():
+        if len(acts) > 1:
+            print(f'{obs=}  {acts=}')
+
+    states = []
+    actions = []
+    for obs, acts in obs2act.items():
+        states.append(obs)
+        actions.append(acts[0])  # only store single action for the same observation
+    new_len = len(states)
+    print(f'Narrowed dataset length: {new_len}')
+
+    new_transitions = Transitions(np.array(states), np.array(actions), np.array([{}] * new_len),
+                                  np.array(states), np.array([False] * new_len))
     return new_transitions
 
 
@@ -196,6 +248,8 @@ if __name__ == '__main__':
     # print(f'{ds.acts=}')
 
     # test CliffCircular demo reading
-    transitions = read_csv_cliff_circular()
-    save_to_csv('success', 'CliffCircular-gym-v0', transitions, test_type='merge')
+    demo_path = '../cliff_circular/demo3'
+    transitions = read_csv_cliff_circular(demo_path)
+    save_to_csv('success', 'CliffCircular-gym-v0-3', transitions, test_type='merge')
+    # save_to_csv('success', 'CliffCircular-gym-v0-obs-act', transitions, test_type='merge')
 
