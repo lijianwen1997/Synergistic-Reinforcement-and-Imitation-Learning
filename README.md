@@ -11,7 +11,7 @@ Mechanical Engineering, Purdue University
 ## Installation
 - The Riverine Simulation Environment has only been tested on Ubuntu 20.04 and Ubuntu 22.04.
 
-- The Unity riverine environments can be downloaded from Google Drive [link](https://drive.google.com/file/d/1WJxrdJ-zutyivMwX9l2zxkW3kB5BTTz5/view?usp=sharing), then unzipped to the folder 'riverine_simulation'.
+- The Unity riverine environments can be downloaded from Google Drive [link](https://drive.google.com/file/d/16LXTkudfFbzxL5ZDCC1b4st59ybRoNpn/view?usp=sharing), then unzipped to the folder 'riverine_simulation'.
 
 - The VAE model can be downloaded from this [link](https://drive.google.com/file/d/1SVU3p5wbGQnQs7U3qp7Gz0eCdo7YrYGh/view?usp=sharing), then put it to 'encoder/models/vae-sim-rgb-all.pth'.
 
