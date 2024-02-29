@@ -723,7 +723,7 @@ if __name__ == "__main__":
     # observation, info = env.reset(options={'state': initial_state})
 
     # Random reset
-    observation, info = env.reset()
+    observation = env.reset()
 
     manual_control: bool = True
     key2action = None
@@ -743,16 +743,16 @@ if __name__ == "__main__":
         else:
             action = env.action_space.sample()
 
-        observation, reward, terminated, truncated, info = env.step(action)
+        observation, reward, terminated, info = env.step(action)
         steps += 1
         ep_rew += reward
         print(f'reward: {reward}')
 
-        if terminated or truncated:
+        if terminated:
             print(f'Done! Steps: {steps}, episode reward: {ep_rew}')
             steps = 0
             ep_rew = 0
-            observation, info = env.reset()
+            observation = env.reset()
 
     print(f'Max steps {max_steps} reached, closing environment ...')
     env.close()
