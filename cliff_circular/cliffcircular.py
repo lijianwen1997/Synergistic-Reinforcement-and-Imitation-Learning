@@ -42,6 +42,8 @@ register(
 
 class CliffCircularEnv(Env):
     """
+    Gymnasium version
+
     Cliff circular involves navigating in a gridworld circularly while avoiding falling off a cliff.
 
     ## Description
