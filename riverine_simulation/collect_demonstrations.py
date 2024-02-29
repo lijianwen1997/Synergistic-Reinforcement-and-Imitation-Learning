@@ -10,16 +10,15 @@ from mlagents_envs.side_channel.environment_parameters_channel import Environmen
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel, EngineConfig
 from agent_configuration_channel import AgentConfigurationChannel, AgentConfig
 from key2action import Key2Action
-from env_utils import make_unity_env
 
 from encoder.vae import VAE
 from encoder.dataset import InputChannelConfig
 
 from drl_deg.train_utils import *
 
-
-env_path = 'unity_riverine_envs/riverine_training_env/riverine_training_env.x86_64'
-# env_path = 'unity_riverine_envs/riverine_testing_env/riverine_testing_env_new.x86_64'
+# Two riverine envs are provided to train the river following policy
+# env_path = 'unity_riverine_envs/riverine_medium_env/riverine_medium_env.x86_64'
+env_path = 'unity_riverine_envs/riverine_hard_env/riverine_hard_env_new.x86_64'
 # env_path = None  # de-annotate if want to interact with Unity Editor directly
 
 width, height = 1024, 1024  # change as you wish
