@@ -11,7 +11,7 @@ from stable_baselines3.common.policies import ActorCriticCnnPolicy, ActorCriticP
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
 from stable_baselines3.common.utils import explained_variance, get_schedule_fn
 
-import drl_deg.bc as bc
+import bc
 
 SelfPPO = TypeVar("SelfPPO", bound="PPO")
 
