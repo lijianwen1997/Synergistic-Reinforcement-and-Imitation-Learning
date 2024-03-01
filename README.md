@@ -41,6 +41,9 @@ pip install -U protobuf==3.20
 
 - If you want to play the CliffCircular environment, run `python -m cliff_circular.cliffcircular` or `python -m cliff_circular.cliffcircular_gym`.
 
+https://github.com/lijianwen1997/Synergistic-Reinforcement-and-Imitation-Learning/assets/28019327/105283ff-e218-46b6-9771-c602787519da
+
+
 
 
 
