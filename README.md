@@ -34,6 +34,9 @@ pip install -U setuptools==65.5.0
 - Run the `riverine_simulation/collect_demonstrations.py` to control the UAV agent in the Unity riverine environment to test successful installation.
 Keys **W** and **S** control camera altitude, **A** and **D** control yaw, **I** and **K** control longitudinal movement, **J** and **L** control latitudinal movement.
 
+https://github.com/lijianwen1997/Synergistic-Reinforcement-and-Imitation-Learning/assets/28019327/1c6c9165-bc6c-42c4-84f5-f55b9730829f
+
+
 - If have protobuf error running the Unity environment, downgrade the protobuf version
 ```shell
 pip install -U protobuf==3.20
