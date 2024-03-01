@@ -1,4 +1,4 @@
-## Synergistic Reinforcement and Imitation Learning (SRIL) for Vision-driven Autonomous Flight of UAV Along River
+# Synergistic Reinforcement and Imitation Learning (SRIL) for Vision-driven Autonomous Flight of UAV Along River
 
 Author: Zihan Wang, Jianwen Li and Nina Mahmoudian
 
