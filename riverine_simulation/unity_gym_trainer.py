@@ -2,10 +2,10 @@ import time
 
 from stable_baselines3.common.logger import configure
 
-from drl_deg.ppo import PPO
-from drl_deg.bc import *
-from drl_deg.callback import UpdateExpertCallback
-from drl_deg.evaluation import evaluate_policy
+from sril.ppo import PPO
+from sril.bc import *
+from sril.callback import UpdateExpertCallback
+from sril.evaluation import evaluate_policy
 
 from env_utils import make_unity_env
 

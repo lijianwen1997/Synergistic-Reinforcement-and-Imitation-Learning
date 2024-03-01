@@ -5,7 +5,7 @@ import numpy as np
 from mlagents_envs.environment import UnityEnvironment
 from riverine_simulation.unity_gym_env import UnityToGymWrapper
 
-from drl_deg.ppo import PPO
+from sril.ppo import PPO
 
 
 '''
