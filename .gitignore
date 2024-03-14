@@ -1,0 +1,8 @@
+encoder/models
+riverine_simulation/unity_riverine_envs/
+sril/ppo_cliff_tensorboard/
+sril/weight/expert/
+sril/weight/sril/
+sril/trajectory/
+__pycache__/
+.idea

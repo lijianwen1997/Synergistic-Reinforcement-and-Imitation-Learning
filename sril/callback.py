@@ -1,11 +1,19 @@
+from ppo import PPO
+#from stable_baselines3 import PPO, TD3
+
 from evaluation import evaluate_policy
+from stable_baselines3.common.vec_env import DummyVecEnv
+from stable_baselines3.ppo import MlpPolicy
+from stable_baselines3.common.logger import configure
 
 from train_utils import *
 
 from stable_baselines3.common.callbacks import BaseCallback
-
+from stable_baselines3.common.results_plotter import load_results, ts2xy
 import bc as bc
 import shutil
+from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
+from imitation.data.types import Transitions
 
 
 class UpdateExpertCallback(BaseCallback):
@@ -19,18 +27,18 @@ class UpdateExpertCallback(BaseCallback):
     :param verbose: (int)
     """
 
-    def __init__(self, check_freq, log_dir, verbose=1, seed=0):
+    def __init__(self, check_freq, log_dir, verbose=1, seed=0, env_name="unity_river",reward_threshold=1):
         super().__init__(verbose)
         self.check_freq = check_freq
         self.log_dir = log_dir
-        self.reward_threshold = 4
+        self.reward_threshold = reward_threshold
         self.reward = 0
         self.reward_max = 10
         self.seed = seed
-        self.env_name = "unity_river"
+        self.env_name =  env_name
 
         directory = "./trajectory/" + self.env_name + "/success"
-        csv_file = directory + "/transitions_deg" + str(seed) + ".csv"
+        csv_file = directory + "/transitions_sril" + str(seed) + ".csv"
         csv_file_demo = directory + "/transitions_merge.csv"
 
         if not os.path.exists(csv_file):
@@ -53,8 +61,8 @@ class UpdateExpertCallback(BaseCallback):
             print("callback", self.n_calls)
 
             self.model.save(
-                "weight/mirl/" + "PPO_MEDIUM_" + self.env_name + '_' + str(self.n_calls) + '_seed_' + str(
-                    self.seed) + "_deg")
+                "weight/sril/" + "PPO_MEDIUM_" + self.env_name + '_' + str(self.n_calls) + '_seed_' + str(
+                    self.seed) + "_sril")
 
             print("evaluate PPO")
             reward, ep_reward, traj_good, _ = evaluate_policy(
@@ -84,7 +92,7 @@ class UpdateExpertCallback(BaseCallback):
             if len(traj_good) > 0:
                 print("New good traj")
                 for i in range(len(traj_good)):
-                    append_to_csv("success", self.env_name, traj_good[i],seed=self.seed,test_type="deg")
+                    append_to_csv("success", self.env_name, traj_good[i],seed=self.seed,test_type="sril")
                 self.model.new_success = True
                 self.model.train_IL = True
 
@@ -98,7 +106,7 @@ class UpdateExpertCallback(BaseCallback):
                 rng = np.random.default_rng(0)
 
                 if self.model.new_success:
-                    d_s = read_csv("success", self.env_name, seed=self.seed, test_type="deg")
+                    d_s = read_csv("success", self.env_name, seed=self.seed, test_type="sril")
 
                     bc_trainer = bc.BC(
                         observation_space=self.model.env.observation_space,
@@ -111,7 +119,7 @@ class UpdateExpertCallback(BaseCallback):
                     bc_trainer.train(n_epochs=20)
                     self.new_success = False
                     bc_trainer.save_policy("weight/expert/" + "BC_MEDIUM_" + self.env_name + "_" + str(self.n_calls) +
-                                           '_seed_' + str(self.seed)+"_deg")
+                                           '_seed_' + str(self.seed)+"_sril")
                     self.model.bc = bc_trainer.policy
                     print("Finish BC training")
 

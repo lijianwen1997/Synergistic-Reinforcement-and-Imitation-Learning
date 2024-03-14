@@ -26,7 +26,7 @@ LEFT = 4
 
 register(
      id="CliffCircular-gym-v0",
-     entry_point="cliff_circular:CliffCircularGymEnv",
+     entry_point="__main__:CliffCircularGymEnv",
      max_episode_steps=128,
      kwargs={
          'render_mode': None,

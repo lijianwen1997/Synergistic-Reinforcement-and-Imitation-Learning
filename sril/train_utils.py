@@ -68,6 +68,7 @@ def append_to_csv(dataset, env_name, data, seed=0, test_type="mix"):
         #    writer.writerow(data)
         for trans in data:
             writer.writerow(trans)
+            csvfile.flush()  # Flush the buffer to ensure data is written
 
 
 def read_csv(dataset, env_name, seed=1, test_type="mix"):
@@ -78,38 +79,34 @@ def read_csv(dataset, env_name, seed=1, test_type="mix"):
     dones = []
     directory = "./trajectory/" + env_name + "/" + dataset
     csv_file = directory + "/transitions_"+test_type + str(seed)+".csv"
-    with open(csv_file, 'r') as csvfile:
-        reader = csv.reader(csvfile)
+    obs2act = {}
+    with open(csv_file, 'r') as f:
+        reader = csv.reader(f, delimiter=',')
         next(reader, None)  # skip the headers
         for line in reader:
-            #print(line)
-            state_str = re.findall(r"[-+]?(?:\d*\.*\d+)", line[0])
-            states.append([float(state) for state in state_str])
-            actions_str = re.findall(r"[-+]?(?:\d*\.*\d+)", line[1])
-            actions.append([float(action) for action in actions_str])
-            infos.append({})  # eval(line[2])
-            next_state_str = re.findall(r"[-+]?(?:\d*\.*\d+)", line[3])
-            next_states.append([float(state) for state in next_state_str])
-            dones.append(eval(line[4]))
-        #breakpoint()
-        #breakpoint()
-        good_steps = 50*100
-        bad_steps = 1000
-        if dataset == "success":
-            states = states[-good_steps:]
-            actions = actions[-good_steps:]
-            infos = infos[-good_steps:]
-            next_states = next_states[-good_steps:]
-            dones = dones[-good_steps:]
-        else:
-            states = states[-bad_steps:]
-            actions = actions[-bad_steps:]
-            infos = infos[-bad_steps:]
-            next_states = next_states[-bad_steps:]
-            dones = dones[-bad_steps:]
-        new_transitions = Transitions(np.array(states), np.array(actions), np.array(infos),
-                                       np.array(next_states), np.array(dones))
+            obs = line[0][1:-1]
+            obs = tuple(int(o) for o in obs.split(' '))
+            act = int(line[1])
+            # print(f'{obs=}  {act=}')
+            if obs not in obs2act:
+                obs2act[obs] = [act]
+            else:
+                obs2act[obs] += [act]
 
+    for obs, acts in obs2act.items():
+        if len(acts) > 4:
+            print(f'{obs=}  {acts=}')
+
+    states = []
+    actions = []
+    for obs, acts in obs2act.items():
+        states.append(obs)
+        actions.append(acts[0])  # only store single action for the same observation
+    new_len = len(states)
+    print(f'Narrowed dataset length: {new_len}')
+
+    new_transitions = Transitions(np.array(states), np.array(actions), np.array([{}] * new_len),
+                                  np.array(states), np.array([False] * new_len))
     return new_transitions
 
 
@@ -147,66 +144,8 @@ def read_csv_unity():
 
     return new_transitions
 
-
-def read_csv_cliff_circular(demo_path: str):
-    states = []
-    actions = []
-    infos = []
-    next_states = []
-    dones = []
-    assert os.path.exists(demo_path), f'{demo_path} does not exist!'
-
-    demo_files = [f for f in os.listdir(demo_path) if f.endswith('.csv')]
-    # print(f'{demo_files=}')
-
-    step = 0
-    for f in demo_files:
-        demo_file = os.path.join(demo_path, f)
-        with open(demo_file, 'r') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',')
-            ep_step = 0
-            for line in reader:
-                ep_step += 1
-                obs = line[0][1:-1]
-                obs = [int(o) for o in obs.split(' ')]
-                act = int(line[1])
-                done = bool(int(line[3]))
-                states.append(obs)
-                actions.append(act)
-                infos.append({})
-                dones.append(done)
-
-        assert ep_step > 3, f'Episode length should be at least 3, given {ep_step}!'
-        next_states += states[step + 1: step + ep_step]
-        next_states.append(next_states[-1])
-        step += ep_step
-
-    # filter out repeated data points
-    print(f'Read {len(states)} data points from demo.')
-    obs2act = {}
-    for obs, act in zip(states, actions):
-        o = tuple(obs)
-        if o not in obs2act:
-            obs2act[o] = act
-        else:
-            assert obs2act[o] == act
-
-    new_states = []
-    new_actions = []
-    for obs, act in obs2act.items():
-        new_states.append(list(obs))
-        new_actions.append(act)
-    new_len = len(new_states)
-    print(f'Narrow down to {new_len} data points.')
-
-    new_transitions = Transitions(np.array(new_states), np.array(new_actions), np.array([{}] * new_len),
-                                  np.array(new_states), np.array([False] * new_len))
-
-    return new_transitions
-
-
 def check_dataset():
-    dataset_path = 'trajectory/CliffCircular-gym-v0-1/success/transitions_merge0.csv'
+    dataset_path = 'trajectory/CliffCircular-gym-v0/success/transitions_merge0_old.csv'
     assert os.path.exists(dataset_path), f'{dataset_path} does not exist!'
 
     obs2act = {}
@@ -237,6 +176,44 @@ def check_dataset():
 
     new_transitions = Transitions(np.array(states), np.array(actions), np.array([{}] * new_len),
                                   np.array(states), np.array([False] * new_len))
+    return new_transitions
+def read_csv_cliff_circular():
+    states = []
+    actions = []
+    infos = []
+    next_states = []
+    dones = []
+    demo_path = '../cliff_circular/demo'
+    assert os.path.exists(demo_path), f'{demo_path} does not exist!'
+
+    demo_files = [f for f in os.listdir(demo_path) if f.endswith('.csv')]
+    # print(f'{demo_files=}')
+
+    step = 0
+    for f in demo_files:
+        demo_file = os.path.join(demo_path, f)
+        with open(demo_file, 'r') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',')
+            ep_step = 0
+            for line in reader:
+                ep_step += 1
+                obs = line[0][1:-1]
+                obs = [int(o) for o in obs.split(' ')]
+                act = int(line[1])
+                done = bool(int(line[3]))
+                states.append(obs)
+                actions.append(act)
+                infos.append({})
+                dones.append(done)
+
+        assert ep_step > 3, f'Episode length should be at least 3, given {ep_step}!'
+        next_states += states[step + 1: step + ep_step]
+        next_states.append(next_states[-1])
+        step += ep_step
+
+    new_transitions = Transitions(np.array(states), np.array(actions), np.array(infos),
+                                  np.array(next_states), np.array(dones))
+
     return new_transitions
 
 

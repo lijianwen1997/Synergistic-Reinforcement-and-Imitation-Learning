@@ -265,7 +265,6 @@ def reconstruct_policy(
     Returns:
         policy: policy with reloaded weights.
     """
-
     policy = th.load(policy_path, map_location=utils.get_device(device))
     #assert isinstance(policy, policies.ActorCriticPolicy)
     return policy
@@ -356,6 +355,8 @@ class BC(algo_base.DemonstrationAlgorithm):
                 # Set lr_schedule to max value to force error if policy.optimizer
                 # is used by mistake (should use self.optimizer instead).
                 lr_schedule=lambda _: th.finfo(th.float32).max,
+                net_arch=[32, 32],
+                # activation_fn = th.nn.ReLU,
             )
         self._policy = policy.to(utils.get_device(device))
         # TODO(adam): make policy mandatory and delete observation/action space params?
@@ -500,8 +501,8 @@ class BC(algo_base.DemonstrationAlgorithm):
             prob_action = training_metrics.prob_true_act
             prob_actions.append(prob_action.item())
             prob_actions = prob_actions[-10:]
-            if np.sum(prob_actions)/10 > 0.95:
-                break
+            # if np.sum(prob_actions)/10 > 0.95:
+            #     break
 
             # Renormalise the loss to be averaged over the whole
             # batch size instead of the minibatch size.

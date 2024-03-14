@@ -197,6 +197,7 @@ def evaluate_policy(
     reward_threshold: Optional[float] = None,
     return_episode_rewards: bool = False,
     warn: bool = True,
+    env_name: str = "unity_river",
 ) -> Union[Tuple[float, float], Tuple[List[float], List[int]]]:
     """
     Runs policy for ``n_eval_episodes`` episodes and returns average reward.
@@ -233,22 +234,22 @@ def evaluate_policy(
         list containing per-episode rewards and second containing per-episode lengths
         (in number of steps).
     """
-    # is_monitor_wrapped = False
+    is_monitor_wrapped = False
     # # Avoid circular import
-    # from stable_baselines3.common.monitor import Monitor
-    #
-    # if not isinstance(env, VecEnv):
-    #     env = DummyVecEnv([lambda: env])
-    #
-    # is_monitor_wrapped = is_vecenv_wrapped(env, VecMonitor) or env.env_is_wrapped(Monitor)[0]
-    #
-    # if not is_monitor_wrapped and warn:
-    #     warnings.warn(
-    #         "Evaluation environment is not wrapped with a ``Monitor`` wrapper. "
-    #         "This may result in reporting modified episode lengths and rewards, if other wrappers happen to modify these. "
-    #         "Consider wrapping environment first with ``Monitor`` wrapper.",
-    #         UserWarning,
-    #     )
+    from stable_baselines3.common.monitor import Monitor
+
+    if not isinstance(env, VecEnv):
+        env = DummyVecEnv([lambda: env])
+
+    is_monitor_wrapped = is_vecenv_wrapped(env, VecMonitor) or env.env_is_wrapped(Monitor)[0]
+
+    if not is_monitor_wrapped and warn:
+        warnings.warn(
+            "Evaluation environment is not wrapped with a ``Monitor`` wrapper. "
+            "This may result in reporting modified episode lengths and rewards, if other wrappers happen to modify these. "
+            "Consider wrapping environment first with ``Monitor`` wrapper.",
+            UserWarning,
+        )
 
     n_envs = env.num_envs
     episode_rewards = []
@@ -262,7 +263,7 @@ def evaluate_policy(
     current_lengths = np.zeros(n_envs, dtype="int")
     observations = env.reset()
     states = None
-    episode_starts = np.ones((env.num_envs,), dtype=bool)
+    episode_starts = np.ones((n_envs,), dtype=bool)
 
     states_l = []
     actions_l = []
@@ -276,19 +277,16 @@ def evaluate_policy(
 
     while (episode_counts < episode_count_targets).any():
 
-
-        actions, states = model.predict(observations, state=states )
+        actions, states = model.predict(observations, state=states, deterministic=deterministic)
         states_l.append(observations.tolist()[0])
 
         actions_l.append(actions.tolist()[0])
+
         observations, rewards, dones, infos = env.step(actions)
-
-
 
         infos_l.append(infos[0])
         next_states_l.append(observations.tolist()[0])
         dones_l.append(dones.tolist()[0])
-
 
         current_rewards += rewards
         current_lengths += 1
@@ -308,30 +306,35 @@ def evaluate_policy(
                     episode_rewards.append(current_rewards[i])
                     episode_lengths.append(current_lengths[i])
                     episode_counts[i] += 1
-                    good_steps = 50
+                    good_steps = 25
                     bad_steps = 3
-                    if current_rewards[i]>reward_threshold and current_lengths[i]>300:
-                        trajectory_l.append(Transitions(np.array(states_l[:good_steps]), np.array(actions_l[:good_steps]), np.array(infos_l[:good_steps]),
-                                          np.array(next_states_l[:good_steps]), np.array(dones_l[:good_steps])))
+                    if env_name == 'CliffCircular-gym-v0':
+
+                        if current_rewards[i] >= reward_threshold and current_lengths[i] < 27:
+                            trajectory_l.append(Transitions(np.array(states_l[:good_steps]), np.array(actions_l[:good_steps]), np.array(infos_l[:good_steps]),
+                                              np.array(next_states_l[:good_steps]), np.array(dones_l[:good_steps])))
                     else:
-                        trajectory_l.append(Transitions(np.array(states_l[-bad_steps:]), np.array(actions_l[-bad_steps:]), np.array(infos_l[-bad_steps:]),
-                                                        np.array(next_states_l[-bad_steps:]), np.array(dones_l[-bad_steps:])))
+                        if current_rewards[i] > reward_threshold and current_lengths[i] > 300:
+                            trajectory_l.append(
+                                Transitions(np.array(states_l[:good_steps]), np.array(actions_l[:good_steps]),
+                                            np.array(infos_l[:good_steps]),
+                                            np.array(next_states_l[:good_steps]), np.array(dones_l[:good_steps])))
+                        else:
+                            trajectory_l.append(
+                                Transitions(np.array(states_l[-bad_steps:]), np.array(actions_l[-bad_steps:]),
+                                            np.array(infos_l[-bad_steps:]),
+                                            np.array(next_states_l[-bad_steps:]), np.array(dones_l[-bad_steps:])))
 
                     states_l = []
                     actions_l = []
                     infos_l = []
                     next_states_l = []
                     dones_l = []
-
-
-
                     current_rewards[i] = 0
                     current_lengths[i] = 0
 
         if render:
             env.render()
-
-
 
     mean_reward = np.mean(episode_rewards)
     std_reward = np.std(episode_rewards)

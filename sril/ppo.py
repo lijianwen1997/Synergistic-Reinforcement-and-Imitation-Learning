@@ -11,7 +11,8 @@ from stable_baselines3.common.policies import ActorCriticCnnPolicy, ActorCriticP
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
 from stable_baselines3.common.utils import explained_variance, get_schedule_fn
 
-import bc
+import bc as bc
+from evaluation import evaluate_policy
 
 SelfPPO = TypeVar("SelfPPO", bound="PPO")
 
@@ -80,7 +81,7 @@ class PPO(OnPolicyAlgorithm):
         self,
         policy: Union[str, Type[ActorCriticPolicy]],
         env: Union[GymEnv, str],
-        # env_name,
+        env_name: str = None,
         learning_rate: Union[float, Schedule] = 3e-4,
         n_steps: int = 2048,
         batch_size: int = 64,
@@ -138,6 +139,24 @@ class PPO(OnPolicyAlgorithm):
                 batch_size > 1
             ), "`batch_size` must be greater than 1. See https://github.com/DLR-RM/stable-baselines3/issues/440"
 
+        sril_dir = os.path.dirname(__file__)
+        if env_name == 'CliffCircular-gym-v0':
+            il_model_path = sril_dir + '/weight/BC_CliffCircular-gym-v0_50'
+
+        else:
+            il_model_path = sril_dir + '/weight/BC_expert'
+        self.bc = bc.reconstruct_policy(il_model_path)
+
+        # self.reward, ep_reward, _, _ = evaluate_policy(
+        #     self.bc,  # type: ignore[arg-type]
+        #     self.env,
+        #     n_eval_episodes=20,
+        #     render=False,
+        #     reward_threshold=18,
+        #     env_name=env.spec.id,
+        # )
+        # print(self.reward, ep_reward,env.spec.id,il_model_path)
+
         if self.env is not None:
             # Check that `n_steps * n_envs > 1` to avoid NaN
             # when doing advantage normalization
@@ -166,11 +185,8 @@ class PPO(OnPolicyAlgorithm):
         self.new_success = False
         self.new_failure = False
         self.use_action_loss = True
-        self.env_name = "unity_river_"
         self.action_eff = 0.5
-        mirl_dir = os.path.dirname(__file__)
-        il_model_path = mirl_dir+'/weight/BC_expert'
-        self.bc = bc.reconstruct_policy(il_model_path)
+
         self.n_calls = 0
         if _init_setup_model:
             self._setup_model()
@@ -264,7 +280,7 @@ class PPO(OnPolicyAlgorithm):
                 entropy_losses.append(entropy_loss.item())
 
                 # Action loss to learn from expert policy
-                action2, _ = self.bc.predict(th.Tensor.cpu(rollout_data.observations))
+                action2, _ = self.bc.predict(th.Tensor.cpu(rollout_data.observations), deterministic=True)
                 action2 = th.Tensor(action2).to(self.device)
 
                 # https://agustinus.kristia.de/techblog/2017/01/26/kl-mle/
