@@ -79,29 +79,49 @@ def read_csv(dataset, env_name, seed=1, test_type="mix"):
     dones = []
     directory = "./trajectory/" + env_name + "/" + dataset
     csv_file = directory + "/transitions_"+test_type + str(seed)+".csv"
-    obs2act = {}
-    with open(csv_file, 'r') as f:
-        reader = csv.reader(f, delimiter=',')
-        next(reader, None)  # skip the headers
-        for line in reader:
-            obs = line[0][1:-1]
-            obs = tuple(int(o) for o in obs.split(' '))
-            act = int(line[1])
-            # print(f'{obs=}  {act=}')
-            if obs not in obs2act:
-                obs2act[obs] = [act]
-            else:
-                obs2act[obs] += [act]
+    if env_name == 'CliffCircular-gym-v0':
+        obs2act = {}
+        with open(csv_file, 'r') as f:
+            reader = csv.reader(f, delimiter=',')
+            next(reader, None)  # skip the headers
+            for line in reader:
+                obs = line[0][1:-1]
+                obs = tuple(int(o) for o in obs.split(' '))
+                act = int(line[1])
+                # print(f'{obs=}  {act=}')
+                if obs not in obs2act:
+                    obs2act[obs] = [act]
+                else:
+                    obs2act[obs] += [act]
 
-    for obs, acts in obs2act.items():
-        if len(acts) > 4:
-            print(f'{obs=}  {acts=}')
+        for obs, acts in obs2act.items():
+            if len(acts) > 4:
+                print(f'{obs=}  {acts=}')
 
-    states = []
-    actions = []
-    for obs, acts in obs2act.items():
-        states.append(obs)
-        actions.append(acts[0])  # only store single action for the same observation
+        states = []
+        actions = []
+        for obs, acts in obs2act.items():
+            states.append(obs)
+            actions.append(acts[0])  # only store single action for the same observation
+    elif env_name == 'unity_riverine':
+        with open(csv_file, 'r') as csvfile:
+            reader = csv.reader(csvfile)
+            next(reader, None)  # skip the headers
+            for line in reader:
+                # print(line)
+                state_str = re.findall(r"[-+]?(?:\d*\.*\d+)", line[0])
+                states.append([float(state) for state in state_str])
+                actions_str = re.findall(r"[-+]?(?:\d*\.*\d+)", line[1])
+                actions.append([float(action) for action in actions_str])
+                infos.append({})  # eval(line[2])
+                next_state_str = re.findall(r"[-+]?(?:\d*\.*\d+)", line[3])
+                next_states.append([float(state) for state in next_state_str])
+                dones.append(eval(line[4]))
+        good_steps = 50 * 100
+
+        states = states[-good_steps:]
+        actions = actions[-good_steps:]
+
     new_len = len(states)
     print(f'Narrowed dataset length: {new_len}')
 
@@ -220,13 +240,17 @@ def read_csv_cliff_circular():
 if __name__ == '__main__':
     # test Unity riverine env demo reading
     # ds = read_csv_unity()
-    # save_to_csv('success', 'unity_river', ds)
+    # save_to_csv('success', 'unity_riverine', ds)
     # # print(f'{ds.obs=}')
     # print(f'{ds.acts=}')
 
     # test CliffCircular demo reading
     demo_path = '../cliff_circular/demo3'
-    transitions = read_csv_cliff_circular(demo_path)
-    save_to_csv('success', 'CliffCircular-gym-v0-3', transitions, test_type='merge')
+    env_name = 'unity_riverine'
+    seed = 1
+    d_s = read_csv("success", env_name, seed=seed, test_type='sril')
+
+    # transitions = read_csv_cliff_circular(demo_path)
+    # save_to_csv('success', 'CliffCircular-gym-v0-3', transitions, test_type='merge')
     # save_to_csv('success', 'CliffCircular-gym-v0-obs-act', transitions, test_type='merge')
 

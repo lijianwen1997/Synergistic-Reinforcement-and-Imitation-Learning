@@ -27,7 +27,7 @@ class UpdateExpertCallback(BaseCallback):
     :param verbose: (int)
     """
 
-    def __init__(self, check_freq, log_dir, verbose=1, seed=0, env_name="unity_river",reward_threshold=1):
+    def __init__(self, check_freq, log_dir, verbose=1, seed=0, env_name='unity_riverine', reward_threshold=1):
         super().__init__(verbose)
         self.check_freq = check_freq
         self.log_dir = log_dir
@@ -35,12 +35,13 @@ class UpdateExpertCallback(BaseCallback):
         self.reward = 0
         self.reward_max = 10
         self.seed = seed
-        self.env_name =  env_name
+        self.env_name = env_name
 
         directory = "./trajectory/" + self.env_name + "/success"
         csv_file = directory + "/transitions_sril" + str(seed) + ".csv"
         csv_file_demo = directory + "/transitions_merge.csv"
 
+        # make a copy of the demo dataset
         if not os.path.exists(csv_file):
             try:
                 shutil.copyfile(csv_file_demo, csv_file)
@@ -65,34 +66,26 @@ class UpdateExpertCallback(BaseCallback):
                     self.seed) + "_sril")
 
             print("evaluate PPO")
-            reward, ep_reward, traj_good, _ = evaluate_policy(
+            reward, ep_reward, traj_good = evaluate_policy(
                 self.model.policy,  # type: ignore[arg-type]
                 self.model.env,
                 n_eval_episodes=20,
                 render=False,
                 reward_threshold=self.reward_threshold
             )
-            if np.mean(ep_reward) > 0.5:
+            if np.mean(ep_reward) > self.reward_threshold:
                 self.model.action_eff = 0.2
                 print("+"*20)
                 print("Update action loss weight!!")
             print("PPO reward", np.mean(ep_reward), ep_reward)
             '''
-            print("evaluate BC")
-            self.reward, ep_reward, _, _ = evaluate_policy(
-                self.model.bc,  # type: ignore[arg-type]
-                self.model.env,
-                n_eval_episodes=5,
-                render=False,
-            )
-            print("BC reward", ep_reward)
             self.reward_threshold = max(self.reward,self.reward_threshold)
             '''
 
             if len(traj_good) > 0:
                 print("New good traj")
                 for i in range(len(traj_good)):
-                    append_to_csv("success", self.env_name, traj_good[i],seed=self.seed,test_type="sril")
+                    append_to_csv("success", self.env_name, traj_good[i], seed=self.seed, test_type='sril')
                 self.model.new_success = True
                 self.model.train_IL = True
 
@@ -106,7 +99,7 @@ class UpdateExpertCallback(BaseCallback):
                 rng = np.random.default_rng(0)
 
                 if self.model.new_success:
-                    d_s = read_csv("success", self.env_name, seed=self.seed, test_type="sril")
+                    d_s = read_csv("success", self.env_name, seed=self.seed, test_type='sril')
 
                     bc_trainer = bc.BC(
                         observation_space=self.model.env.observation_space,

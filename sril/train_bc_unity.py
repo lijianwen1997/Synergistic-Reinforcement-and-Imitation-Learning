@@ -16,7 +16,7 @@ if __name__ == "__main__":
     train_il_good = True
     train_il_bad = True
     tmp_path = "/tmp/sb3_log/"
-    env_name = "unity_river"
+    env_name = "unity_riverine"
     np.set_printoptions(suppress=True)
 
     train_il_ep = 50

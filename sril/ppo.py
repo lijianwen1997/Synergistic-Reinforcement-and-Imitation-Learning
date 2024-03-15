@@ -142,9 +142,12 @@ class PPO(OnPolicyAlgorithm):
         sril_dir = os.path.dirname(__file__)
         if env_name == 'CliffCircular-gym-v0':
             il_model_path = sril_dir + '/weight/BC_CliffCircular-gym-v0_50'
+            self.deterministic = True
 
-        else:
+        elif env_name == 'unity_riverine':
             il_model_path = sril_dir + '/weight/BC_expert'
+            self.deterministic = False
+
         self.bc = bc.reconstruct_policy(il_model_path)
 
         # self.reward, ep_reward, _, _ = evaluate_policy(
@@ -280,7 +283,7 @@ class PPO(OnPolicyAlgorithm):
                 entropy_losses.append(entropy_loss.item())
 
                 # Action loss to learn from expert policy
-                action2, _ = self.bc.predict(th.Tensor.cpu(rollout_data.observations), deterministic=True)
+                action2, _ = self.bc.predict(th.Tensor.cpu(rollout_data.observations), deterministic=self.deterministic)
                 action2 = th.Tensor(action2).to(self.device)
 
                 # https://agustinus.kristia.de/techblog/2017/01/26/kl-mle/

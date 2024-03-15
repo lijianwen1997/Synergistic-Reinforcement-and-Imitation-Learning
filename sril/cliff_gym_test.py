@@ -32,7 +32,7 @@ def test():
             rewards = []
             for i in range(10,11):
                 env = gym.make(env_name, seed=8)
-                #model_save_name = "weight/expert/BC_MEDIUM_"+env_name+"_"+str(i*14000)+"_seed_"+str(seed)+"_deg"
+                #model_save_name = "weight/expert/BC_MEDIUM_"+env_name+"_"+str(i*14000)+"_seed_"+str(seed)+"_sril"
                 model_save_name = "weight/BC_"+env_name+"_50"
                 print(model_save_name)
                 model = bc.reconstruct_policy(model_save_name)

@@ -46,12 +46,12 @@ def train():
 
     seeds = [1, 2, 3, 4, 5]*3
     use_bc = [0]*5+[1]*10 # if use bc expert
-    deg = [0]*10+[1]*5     # if dynamically update expert
-    print(seeds, use_bc, deg)
+    sril = [0]*10+[1]*5     # if dynamically update expert
+    print(seeds, use_bc, sril)
     for index in range(10, 15):
         env = gym.make(env_name, seed=seeds[index])
 
-        if deg[index]:
+        if sril[index]:
             model_type = "_dynamic_bc"
 
         elif use_bc[index]:
