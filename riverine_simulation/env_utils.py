@@ -1,6 +1,5 @@
-
 from mlagents_envs.environment import UnityEnvironment
-from unity_gym_env import UnityToGymWrapper
+from riverine_simulation.unity_gym_env import UnityToGymWrapper
 
 from stable_baselines3.common.vec_env.subproc_vec_env import SubprocVecEnv
 from stable_baselines3.common.vec_env.dummy_vec_env import DummyVecEnv

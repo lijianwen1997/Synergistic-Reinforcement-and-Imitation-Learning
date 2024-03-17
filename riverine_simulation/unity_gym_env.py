@@ -11,6 +11,7 @@ from mlagents_envs.base_env import ActionTuple, BaseEnv
 from mlagents_envs.base_env import DecisionSteps, TerminalSteps
 from mlagents_envs import logging_util
 
+import sys
 from encoder.vae import VAE
 from encoder.dataset import InputChannelConfig
 
@@ -178,7 +179,7 @@ class UnityToGymWrapper(gym.Env):
 
         mode = 'sim'  # or 'real' or 'both'
         channel_config = InputChannelConfig.RGB_ONLY  # or 'MASK_ONLY' or 'RGB_MASK'
-        vae_model_dir = '../encoder/models/'
+        vae_model_dir = './encoder/models/'
         vae_model_path = vae_model_dir + vae_model_name
         assert os.path.exists(vae_model_path), f'vae model {vae_model_path} not exists!'
         latent_dim = 1024

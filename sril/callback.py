@@ -1,20 +1,8 @@
-from ppo import PPO
-#from stable_baselines3 import PPO, TD3
-
-from evaluation import evaluate_policy
-from stable_baselines3.common.vec_env import DummyVecEnv
-from stable_baselines3.ppo import MlpPolicy
-from stable_baselines3.common.logger import configure
-
-from train_utils import *
-
+from sril.evaluation import evaluate_policy
+from sril.train_utils import *
 from stable_baselines3.common.callbacks import BaseCallback
-from stable_baselines3.common.results_plotter import load_results, ts2xy
-import bc as bc
+import sril.bc as bc
 import shutil
-from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
-from imitation.data.types import Transitions
-
 
 class UpdateExpertCallback(BaseCallback):
     """
@@ -37,7 +25,7 @@ class UpdateExpertCallback(BaseCallback):
         self.seed = seed
         self.env_name = env_name
 
-        directory = "./trajectory/" + self.env_name + "/success"
+        directory = "./sril/trajectory/" + self.env_name + "/success"
         csv_file = directory + "/transitions_sril" + str(seed) + ".csv"
         csv_file_demo = directory + "/transitions_merge.csv"
 
@@ -48,7 +36,7 @@ class UpdateExpertCallback(BaseCallback):
                 print(f"File '{csv_file}' created by copying from '{csv_file_demo}'.")
             except Exception as e:
                 print(f"Error creating file: {e}")
-        weight_directory = "./weight/expert/"
+        weight_directory = "./sril/weight/expert/"
         if not os.path.exists(weight_directory):
             os.makedirs(weight_directory)
             print(f"Folder '{weight_directory}' created successfully.")
@@ -62,7 +50,7 @@ class UpdateExpertCallback(BaseCallback):
             print("callback", self.n_calls)
 
             self.model.save(
-                "weight/sril/" + "PPO_MEDIUM_" + self.env_name + '_' + str(self.n_calls) + '_seed_' + str(
+                "sril/weight/sril/" + "PPO_MEDIUM_" + self.env_name + '_' + str(self.n_calls) + '_seed_' + str(
                     self.seed) + "_sril")
 
             print("evaluate PPO")
@@ -111,7 +99,7 @@ class UpdateExpertCallback(BaseCallback):
                     bc_trainer.success = True
                     bc_trainer.train(n_epochs=20)
                     self.new_success = False
-                    bc_trainer.save_policy("weight/expert/" + "BC_MEDIUM_" + self.env_name + "_" + str(self.n_calls) +
+                    bc_trainer.save_policy("sril/weight/expert/" + "BC_MEDIUM_" + self.env_name + "_" + str(self.n_calls) +
                                            '_seed_' + str(self.seed)+"_sril")
                     self.model.bc = bc_trainer.policy
                     print("Finish BC training")

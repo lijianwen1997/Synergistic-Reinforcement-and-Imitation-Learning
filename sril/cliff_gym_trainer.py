@@ -1,13 +1,8 @@
-import time
-
 from stable_baselines3.common.logger import configure
 
-from ppo import PPO
-from bc import *
-from callback import UpdateExpertCallback
-from evaluation import evaluate_policy
-
-
+from sril.ppo import PPO
+from sril.bc import *
+from sril.callback import UpdateExpertCallback
 
 # Modifiable values
 env_seed = 1
@@ -19,15 +14,11 @@ sample_bad = False
 train_il_good = False
 train_il_bad = False
 
-import sys
-sys.path.append("../cliff_circular")
-from cliffcircular_gym import CliffCircularGymEnv
-
 
 tmp_path = "/tmp/sb3_log/"
 
 
-tb_log_dir = './ppo_cliff_tensorboard/'
+tb_log_dir = './sril/ppo_cliff_tensorboard/'
 
 np.set_printoptions(suppress=True)
 train_ppo_ep = 140000
@@ -45,10 +36,10 @@ def train():
     env_name = 'CliffCircular-gym-v0'
 
     seeds = [1, 2, 3, 4, 5]*3
-    use_bc = [0]*5+[1]*10 # if use bc expert
+    use_bc = [0]*5+[1]*10  # if use bc expert
     sril = [0]*10+[1]*5     # if dynamically update expert
     print(seeds, use_bc, sril)
-    for index in range(10, 15):
+    for index in range(0, 15):
         env = gym.make(env_name, seed=seeds[index])
 
         if sril[index]:
@@ -60,9 +51,10 @@ def train():
             model_type = "_no_bc"
 
         callback = UpdateExpertCallback(check_freq=check_freq, log_dir=tmp_path,
-                                        verbose=1, seed=seeds[index], env_name=env_name, reward_threshold=20) if use_bc[index] else None
+                                        verbose=1, seed=seeds[index], env_name=env_name,
+                                        reward_threshold=20) if use_bc[index] else None
         tb_log_name = 'cliff_training_' + str(seeds[index]) + model_type
-        model_save_name = 'cliff_training_' + str(seeds[index]) + '_140k' + model_type
+        model_save_name = './sril/weight/cliff_training_' + str(seeds[index]) + '_140k' + model_type
 
         model = PPO("MlpPolicy", env, n_steps=1024, batch_size=64, n_epochs=10, verbose=0, env_name=env_name,
                     tensorboard_log=tb_log_dir)

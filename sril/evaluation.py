@@ -1,3 +1,9 @@
+"""
+Description: This script is adapted from stable_baselin3/common/evaluation.py
+             It evaluates the policy and returns mean_reward, episode_rewards, trajectory_good
+Link: https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/evaluation.py
+Last Revision: Mar 2024
+"""
 import warnings
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
@@ -123,14 +129,13 @@ def evaluate_policy(
                 if callback is not None:
                     callback(locals(), globals())
 
+                # check if the trajectories meet the requirements
                 if dones[i]:
-
                     episode_rewards.append(current_rewards[i])
                     episode_lengths.append(current_lengths[i])
                     episode_counts[i] += 1
                     good_steps = 25
                     if env_name == 'CliffCircular-gym-v0':
-
                         if current_rewards[i] >= reward_threshold and current_lengths[i] < 27:
                             trajectory_l.append(Transitions(np.array(states_l[:good_steps]),
                                                             np.array(actions_l[:good_steps]),
@@ -157,13 +162,10 @@ def evaluate_policy(
 
     mean_reward = np.mean(episode_rewards)
     std_reward = np.std(episode_rewards)
-
     if reward_threshold is not None:
         for i in range(len(trajectory_l)):
-
             if episode_rewards[i] >= reward_threshold:
                 trajectory_good.append(trajectory_l[i])
-
     if return_episode_rewards:
         return episode_rewards, episode_lengths, trajectory_good
     return mean_reward, episode_rewards, trajectory_good

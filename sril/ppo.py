@@ -1,3 +1,9 @@
+"""
+Description: This script is adapted from stable baseline3/PPO/PPO.py
+Link: https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/ppo/ppo.py
+Author: Jianwen Li, Purdue University
+Last Revision: Mar 2024
+"""
 import warnings
 from typing import Any, Dict, Optional, Type, TypeVar, Union
 import os
@@ -11,8 +17,8 @@ from stable_baselines3.common.policies import ActorCriticCnnPolicy, ActorCriticP
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
 from stable_baselines3.common.utils import explained_variance, get_schedule_fn
 
-import bc as bc
-from evaluation import evaluate_policy
+import sril.bc as bc
+from sril.evaluation import evaluate_policy
 
 SelfPPO = TypeVar("SelfPPO", bound="PPO")
 
@@ -139,26 +145,18 @@ class PPO(OnPolicyAlgorithm):
                 batch_size > 1
             ), "`batch_size` must be greater than 1. See https://github.com/DLR-RM/stable-baselines3/issues/440"
 
+        # load the trained bc policy
         sril_dir = os.path.dirname(__file__)
+
         if env_name == 'CliffCircular-gym-v0':
             il_model_path = sril_dir + '/weight/BC_CliffCircular-gym-v0_50'
             self.deterministic = True
 
         elif env_name == 'unity_riverine':
-            il_model_path = sril_dir + '/weight/BC_expert'
+            il_model_path = sril_dir + '/weight/BC_UnityRiverine-gym_50'
             self.deterministic = False
 
         self.bc = bc.reconstruct_policy(il_model_path)
-
-        # self.reward, ep_reward, _, _ = evaluate_policy(
-        #     self.bc,  # type: ignore[arg-type]
-        #     self.env,
-        #     n_eval_episodes=20,
-        #     render=False,
-        #     reward_threshold=18,
-        #     env_name=env.spec.id,
-        # )
-        # print(self.reward, ep_reward,env.spec.id,il_model_path)
 
         if self.env is not None:
             # Check that `n_steps * n_envs > 1` to avoid NaN
@@ -282,11 +280,11 @@ class PPO(OnPolicyAlgorithm):
 
                 entropy_losses.append(entropy_loss.item())
 
-                # Action loss to learn from expert policy
+                # Generate action from expert policy
                 action2, _ = self.bc.predict(th.Tensor.cpu(rollout_data.observations), deterministic=self.deterministic)
                 action2 = th.Tensor(action2).to(self.device)
 
-                # https://agustinus.kristia.de/techblog/2017/01/26/kl-mle/
+                # Calculate the action loss using cross entropy loss
                 values_2, log_prob_2, entropy_2 = self.policy.evaluate_actions(rollout_data.observations, action2)
                 action_loss = -log_prob_2.mean()
                 action_losses.append(action_loss.item())

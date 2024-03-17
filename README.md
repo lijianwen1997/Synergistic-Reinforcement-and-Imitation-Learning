@@ -48,6 +48,16 @@ https://github.com/lijianwen1997/Synergistic-Reinforcement-and-Imitation-Learnin
 
 ## Getting started
 
+- To train IL expert in the CliffCircular environment, run 
+```
+python -m sril.train_bc_cliff
+```
+
+- To train IL expert in the Unity_riverine environment, run 
+```
+python -m sril.train_bc_riverine
+```
+
 - If you want to train the CliffCircular environment, run 
 ```
 python -m sril.cliff_gym_trainer
@@ -59,7 +69,7 @@ python -m sril.unity_gym_trainer
 ```
 
 - To check the training log, run
-```tensorboard --logdir ppo_river_tensorboard/` or `tensorboard --logdir ppo_cliff_tensorboard/```
+```tensorboard --logdir sril/ppo_river_tensorboard/` or `tensorboard --logdir sril/ppo_cliff_tensorboard/```
 
 
 

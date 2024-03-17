@@ -32,7 +32,7 @@ def save_to_file(data, file_path):
 
 
 def save_to_csv(dataset, env_name, transitions, failure_steps=20, test_type="mix", seed=0):
-    directory = "./trajectory/" + env_name + "/" + dataset
+    directory = "./sril/trajectory/" + env_name + "/" + dataset
     if not os.path.exists(directory):
         os.makedirs(directory)
     csv_columns = ['obs', 'acts', 'infos', 'next_obs', 'dones']
@@ -53,7 +53,7 @@ def save_to_csv(dataset, env_name, transitions, failure_steps=20, test_type="mix
 
 
 def append_to_csv(dataset, env_name, data, seed=0, test_type="mix"):
-    directory = "./trajectory/" + env_name + "/" + dataset
+    directory = "./sril/trajectory/" + env_name + "/" + dataset
     csv_columns = ['obs', 'acts', 'infos', 'next_obs', 'dones']
     csv_file = directory + "/transitions_"+test_type + str(seed)+".csv"
     if not os.path.exists(csv_file):
@@ -77,8 +77,11 @@ def read_csv(dataset, env_name, seed=1, test_type="mix"):
     infos = []
     next_states = []
     dones = []
-    directory = "./trajectory/" + env_name + "/" + dataset
-    csv_file = directory + "/transitions_"+test_type + str(seed)+".csv"
+    directory = "./sril/trajectory/" + env_name + "/" + dataset
+    if test_type=="merge":
+        csv_file = directory + "/transitions_"+test_type+".csv"
+    else:
+        csv_file = directory + "/transitions_"+test_type + str(seed)+".csv"
     if env_name == 'CliffCircular-gym-v0':
         obs2act = {}
         with open(csv_file, 'r') as f:

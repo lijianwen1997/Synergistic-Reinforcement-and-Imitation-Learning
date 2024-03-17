@@ -3,8 +3,7 @@ riverine_simulation/unity_riverine_envs/
 riverine_simulation/unity.log
 sril/ppo_cliff_tensorboard/
 sril/ppo_river_tensorboard/
-sril/weight/expert/
-sril/weight/sril/
+sril/weight/
 sril/trajectory/
 __pycache__/
 .idea
