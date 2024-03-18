@@ -69,7 +69,7 @@ python -m sril.unity_gym_trainer
 ```
 
 - To check the training log, run
-```tensorboard --logdir sril/ppo_river_tensorboard/` or `tensorboard --logdir sril/ppo_cliff_tensorboard/```
+`tensorboard --logdir sril/ppo_river_tensorboard/` or `tensorboard --logdir sril/ppo_cliff_tensorboard/`
 
 
 
