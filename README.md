@@ -48,22 +48,22 @@ https://github.com/lijianwen1997/Synergistic-Reinforcement-and-Imitation-Learnin
 
 ## Getting started
 
-- To train IL expert in the CliffCircular environment, run 
+- To train BC expert in the CliffCircular environment, run 
 ```
 python -m sril.train_bc_cliff
 ```
 
-- To train IL expert in the Unity_riverine environment, run 
+- To train BC expert in the Unity riverine environment, run 
 ```
 python -m sril.train_bc_riverine
 ```
 
-- If you want to train the CliffCircular environment, run 
+- To train PPO+DynamicBC agent in the CliffCircular environment, run 
 ```
 python -m sril.cliff_gym_trainer
 ```
 
-- If you want to train the Unity_riverine environment, run 
+- To train PPO+DynamicBC agent in the Unity riverine environment, run 
 ```
 python -m sril.unity_gym_trainer
 ```
