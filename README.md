@@ -4,7 +4,11 @@ Author: Zihan Wang, Jianwen Li and Nina Mahmoudian
 
 Mechanical Engineering, Purdue University 
 
-[![Video](https://img.youtube.com/vi/NJVux-3tXqA/hqdefault.jpg)](https://www.youtube.com/watch?v=NJVux-3tXqA)
+
+
+https://github.com/lijianwen1997/Synergistic-Reinforcement-and-Imitation-Learning/assets/28019327/46939b06-ab49-495c-99f5-c106d1398968
+
+
 
 ## Installation
 - The Riverine Simulation Environment has only been tested on Ubuntu 20.04 and Ubuntu 22.04.
