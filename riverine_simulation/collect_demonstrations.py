@@ -17,9 +17,8 @@ from encoder.dataset import InputChannelConfig
 from sril.train_utils import *
 
 # Two riverine envs are provided to train the river following policy
-
-env_path = 'unity_riverine_envs/riverine_training_env/riverine_training_env.x86_64'
-# env_path = 'unity_riverine_envs/riverine_testing_env/riverine_testing_env.x86_64'
+env_path = 'unity_riverine_envs/riverine_medium_env/riverine_medium_env.x86_64'
+# env_path = 'unity_riverine_envs/riverine_hard_env/riverine_hard_env_new.x86_64'
 # env_path = None  # de-annotate if want to interact with Unity Editor directly
 
 width, height = 1024, 1024  # change as you wish
