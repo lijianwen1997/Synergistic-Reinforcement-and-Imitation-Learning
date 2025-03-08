@@ -76,6 +76,20 @@ python -m sril.unity_gym_trainer
 `tensorboard --logdir sril/ppo_river_tensorboard/` or `tensorboard --logdir sril/ppo_cliff_tensorboard/`
 
 
+If you find our work useful in your research, please cite our paper:
+
+```
+@inproceedings{wang2024synergistic,
+  title={Synergistic Reinforcement and Imitation Learning for Vision-driven Autonomous Flight of UAV Along River},
+  author={Wang, Zihan and Li, Jianwen and Mahmoudian, Nina},
+  booktitle={2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+  pages={9976--9982},
+  year={2024},
+  organization={IEEE}
+}
+```
+
+
 
 
 
